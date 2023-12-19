@@ -40,26 +40,26 @@ export default function Login({navigation}) {
   }, []);
 
   const checkLogin = () => {
-    firestore()
-      .collection('Users')
-      .where('email', '==', email)
-      .get()
-      .then(querySnapshot => {
-        if (!querySnapshot.empty) {
-          const user = querySnapshot.docs[0].data();
-          if (user.password === password) {
-            login();
-          } else {
-            alert('Wrong password');
-          }
-        } else {
-          alert('Account not found');
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
-    // loginAd();
+    // firestore()
+    //   .collection('Users')
+    //   .where('email', '==', email)
+    //   .get()
+    //   .then(querySnapshot => {
+    //     if (!querySnapshot.empty) {
+    //       const user = querySnapshot.docs[0].data();
+    //       if (user.password === password) {
+    //         login();
+    //       } else {
+    //         alert('Wrong password');
+    //       }
+    //     } else {
+    //       alert('Account not found');
+    //     }
+    //   })
+    //   .catch(error => {
+    //     console.log(error);
+    //   });
+    loginAd();
   };
 
   const login = async () => {

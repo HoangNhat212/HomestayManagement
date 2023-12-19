@@ -10,20 +10,25 @@ import {
 import image1 from '../../assets/images/hotel1.jpg';
 import image2 from '../../assets/images/hotel2.jpg';
 import image3 from '../../assets/images/hotel3.jpg';
-
-const Homescreen_admin = () => {
-  const [data, setData] = useState([
-    {id: '1', name: 'Item 1', image: image1},
-    {id: '2', name: 'Item 2', image: image2},
-    // Add more items as needed
-  ]);
-
-  const renderItem = ({item}) => (
-    <View style={styles.itemContainer}>
-      <Image source={item.image} style={styles.itemImage} />
-      <Text style={styles.itemText}>{item.name}</Text>
-    </View>
-  );
+import database from '@react-native-firebase/database';
+const Homescreen_admin = ({navigation}) => {
+  const [data, setData] = useState([]);
+  database()
+    .ref('/homestays')
+    .on('value', data => {
+      setData(data.val());
+    });
+  const renderItem = ({item}) => {
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate('DetailHomeScreen_Admin', item)}>
+        <View style={styles.itemContainer}>
+          <Image source={{uri: item.image}} style={styles.itemImage} />
+          <Text style={styles.itemText}>{item.name}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const handleAddItem = () => {
     // Add a new item to the data array
@@ -67,10 +72,10 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
   },
   itemImage: {
-    width: 50,
-    height: 50,
+    height: 40,
+    width: 40,
     marginRight: 10,
-    borderRadius: 25,
+    borderRadius: 10,
   },
   itemText: {
     fontSize: 16,

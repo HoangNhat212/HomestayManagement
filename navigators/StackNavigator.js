@@ -19,6 +19,7 @@ import PayScreen from '../components/ExploreComponent/PayScreen';
 import ForgotPasswordScreen from '../components/LoginComponent/ForgotPasswordScreen';
 import Homescreen_admin from '../components/Admin/homescreen_admin';
 import BottomTabsNavigator_Admin from '../components/Admin/bottom_navigator_admin';
+import DetailHomeScreen_admin from '../components/Admin/detailHomeScreen_admin';
 
 const Stack = createNativeStackNavigator();
 const myTheme = {
@@ -72,6 +73,11 @@ function StackTabs() {
       <Stack.Screen
         name="DetailHomestay"
         component={DetailHomestay}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="DetailHomeScreen_Admin"
+        component={DetailHomeScreen_admin}
         options={{headerShown: false}}
       />
       <Stack.Screen
