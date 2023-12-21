@@ -7,17 +7,16 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import image1 from '../../assets/images/hotel1.jpg';
-import image2 from '../../assets/images/hotel2.jpg';
-import image3 from '../../assets/images/hotel3.jpg';
 import database from '@react-native-firebase/database';
+
 const Homescreen_admin = ({navigation}) => {
   const [data, setData] = useState([]);
   database()
     .ref('/homestays')
-    .on('value', data => {
-      setData(data.val());
+    .on('value', snapshot => {
+      setData(snapshot.val());
     });
+
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
@@ -30,30 +29,20 @@ const Homescreen_admin = ({navigation}) => {
     );
   };
 
-  const handleAddItem = () => {
-    // Add a new item to the data array
-    const newItem = {
-      id: String(data.length + 1),
-      name: `Item ${data.length + 1}`,
-      image: image3,
-    };
-
-    setData([...data, newItem]);
-  };
-
   return (
     <View style={styles.container}>
-      {/* View containing Add button */}
       <View style={styles.addButtonContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddScreen_Admin')}>
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
-
       <FlatList
         data={data}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.homestay_id}
+        style={styles.flatList}
       />
     </View>
   );
@@ -63,6 +52,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  flatList: {
+    marginBottom: 80,
   },
   itemContainer: {
     flexDirection: 'row',
@@ -81,13 +73,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   addButtonContainer: {
-    alignItems: 'flex-end', // Đặt nút "Add" ở phía bên phải
+    alignItems: 'flex-end',
     paddingRight: 20,
     paddingTop: 20,
   },
   addButton: {
     backgroundColor: 'blue',
     padding: 10,
+    width: 80,
     alignItems: 'center',
     borderRadius: 5,
   },

@@ -20,6 +20,11 @@ import ForgotPasswordScreen from '../components/LoginComponent/ForgotPasswordScr
 import Homescreen_admin from '../components/Admin/homescreen_admin';
 import BottomTabsNavigator_Admin from '../components/Admin/bottom_navigator_admin';
 import DetailHomeScreen_admin from '../components/Admin/detailHomeScreen_admin';
+import AddScreen_admin from '../components/Admin/addscreen_admin';
+import Roomscreen_admin from '../components/Admin/Roomscreen_admin';
+import RoomType_admin from '../components/Admin/RoomType_admin';
+import EditRoomType_admin from '../components/Admin/EditRoomType_admin';
+import AddRoomType_admin from '../components/Admin/AddRoomType_admin';
 
 const Stack = createNativeStackNavigator();
 const myTheme = {
@@ -58,8 +63,12 @@ function StackTabs() {
       <Stack.Screen
         name="BottomTabsNavigator_Admin"
         component={BottomTabsNavigator_Admin}
-        options={{headerShown: true}}
+        options={{
+          headerTitle: 'HomeScreen', // Đổi tên header ở đây
+          headerShown: true, // Nếu muốn hiển thị header
+        }}
       />
+
       <Stack.Screen
         name="TopTabsNavigator"
         component={TopTabsNavigator}
@@ -79,6 +88,31 @@ function StackTabs() {
         name="DetailHomeScreen_Admin"
         component={DetailHomeScreen_admin}
         options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="AddScreen_Admin"
+        component={AddScreen_admin}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="RoomScreen_admin"
+        component={Roomscreen_admin}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="RoomType_admin"
+        component={RoomType_admin}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="EditRoomType_admin"
+        component={EditRoomType_admin}
+        options={{headerShown: true}}
+      />
+      <Stack.Screen
+        name="AddRoomType_admin"
+        component={AddRoomType_admin}
+        options={{headerShown: true}}
       />
       <Stack.Screen
         name="SearchHomestay"
@@ -110,7 +144,7 @@ function StackTabs() {
       <Stack.Screen
         name="AdminHomeScreen"
         component={Homescreen_admin}
-        options={{headerShown: true}}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );
