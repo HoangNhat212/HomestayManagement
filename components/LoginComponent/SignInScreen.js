@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import {el} from 'date-fns/locale';
 export default function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,26 +41,29 @@ export default function Login({navigation}) {
   }, []);
 
   const checkLogin = () => {
-    // firestore()
-    //   .collection('Users')
-    //   .where('email', '==', email)
-    //   .get()
-    //   .then(querySnapshot => {
-    //     if (!querySnapshot.empty) {
-    //       const user = querySnapshot.docs[0].data();
-    //       if (user.password === password) {
-    //         login();
-    //       } else {
-    //         alert('Wrong password');
-    //       }
-    //     } else {
-    //       alert('Account not found');
-    //     }
-    //   })
-    //   .catch(error => {
-    //     console.log(error);
-    //   });
-    loginAd();
+    if (email == 'admin' && password == '123') {
+      loginAd();
+    } else {
+      firestore()
+        .collection('Users')
+        .where('email', '==', email)
+        .get()
+        .then(querySnapshot => {
+          if (!querySnapshot.empty) {
+            const user = querySnapshot.docs[0].data();
+            if (user.password === password) {
+              login();
+            } else {
+              alert('Wrong password');
+            }
+          } else {
+            alert('Account not found');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
   };
 
   const login = async () => {

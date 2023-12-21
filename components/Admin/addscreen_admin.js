@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,74 +11,21 @@ import {
 import {Picker} from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 import {FlatList, ScrollView} from 'react-native-gesture-handler';
-import database from '@react-native-firebase/database';
-const DetailHomeScreenAdmin = ({route, navigation}) => {
-  const homestay = route.params;
-  const [rooms, setRooms] = useState([]);
-  const [roomtype, setRoomTypes] = useState([]);
-  const [name, setName] = useState(homestay.name);
-  const [location, setLocation] = useState(homestay.location);
-  const [policy, setPolicy] = useState(homestay.policy);
-  const [price, setPrice] = useState(homestay.price);
-  const [province, setProvince] = useState(homestay.province);
-  const [slogan, setSlogan] = useState(homestay.slogan);
-  const [detail, setDetail] = useState(homestay.details);
+
+const AddScreen_admin = () => {
+  const [name, setName] = useState();
+  const [location, setLocation] = useState();
+  const [policy, setPolicy] = useState();
+  const [price, setPrice] = useState();
+  const [province, setProvince] = useState();
+  const [slogan, setSlogan] = useState();
+  const [detail, setDetail] = useState();
   const [extensions, setExtensions] = useState({
-    buffet: homestay.extension['Buffet'] == '1' ? true : false,
-    carPark: homestay.extension['Car_park'] == '1' ? true : false,
-    motorBike: homestay.extension['MotorBike'] == '1' ? true : false,
-    wifi: homestay.extension['Wifi'] == '1' ? true : false,
+    buffet: false,
+    carPark: false,
+    motorBike: false,
+    wifi: false,
   });
-
-  const fetchRooms = useCallback(async () => {
-    const snapshot = await database().ref('rooms').once('value');
-    if (snapshot && snapshot.val) {
-      const data = snapshot.val();
-      const roomsData = Object.values(data);
-      console.log(roomtype);
-      // Tạo một đối tượng để phân loại các phòng theo roomtype_id
-      const classifiedRooms = {};
-      roomsData.forEach(room => {
-        if (classifiedRooms.hasOwnProperty(room.roomtype_id)) {
-          classifiedRooms[room.roomtype_id].push(room);
-        } else {
-          classifiedRooms[room.roomtype_id] = [room];
-        }
-      });
-      const filterclassifiedRooms = Object.keys(classifiedRooms)
-        .map(key => classifiedRooms[key])
-        .flat()
-        .filter(
-          roomA =>
-            roomtype &&
-            roomtype.some(roomB => roomB.roomtype_id === roomA.roomtype_id),
-        );
-      const updatedRooms = filterclassifiedRooms;
-
-      setRooms(updatedRooms);
-    }
-  }, [roomtype]);
-
-  const fetchRoomTypes = useCallback(async () => {
-    const snapshot = await database().ref('roomtypes').once('value');
-    if (snapshot && snapshot.val) {
-      const data = snapshot.val();
-      const roomTypesData = Object.values(data);
-      // Lọc các kiểu phòng theo homestay_id
-      const filteredRoomTypes = roomTypesData.filter(
-        roomType => roomType.homestay_id === homestay.homestay_id,
-      );
-      let updatedRoomTypes = filteredRoomTypes;
-      await setRoomTypes(updatedRoomTypes);
-    }
-  }, [homestay.homestay_id]);
-  useEffect(() => {
-    fetchRoomTypes();
-  }, [fetchRoomTypes]);
-
-  useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
   const provinces = [
     'Hà Nội',
     'Hồ Chí Minh',
@@ -155,9 +102,6 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
     console.log('Extensions:', extensions);
     // Thêm các logic xử lý lưu dữ liệu vào cơ sở dữ liệu nếu cần
   };
-  const listroomNav = async () => {
-    navigation.navigate('RoomScreen_admin', {rooms, roomtype});
-  };
 
   return (
     <KeyboardAvoidingView
@@ -191,7 +135,7 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
         <Text style={styles.label}>Price ($):</Text>
         <TextInput
           style={styles.input}
-          value={price.toString()}
+          value={price}
           onChangeText={text => setPrice(text)}
           placeholder="Enter price"
           keyboardType="numeric"
@@ -240,9 +184,6 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.listButton} onPress={listroomNav}>
-          <Text style={{fontSize: 16, color: '#fff'}}>List Room</Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -282,17 +223,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
   },
-  listButton: {
-    backgroundColor: 'green',
-    padding: 10,
-    marginBottom: 20,
-    alignItems: 'center',
-    borderRadius: 5,
-  },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
   },
 });
-
-export default DetailHomeScreenAdmin;
+export default AddScreen_admin;
