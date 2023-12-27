@@ -14,7 +14,6 @@ import firestore from '@react-native-firebase/firestore';
 import {useFocusEffect} from '@react-navigation/native';
 
 function Account({navigation, route}) {
-  const {email} = route.params;
   const [name, setname] = useState('');
   const [phone, setphone] = useState('');
   const [accmail, setaccmail] = useState('');
@@ -27,6 +26,7 @@ function Account({navigation, route}) {
     await AsyncStorage.removeItem('isLoggedIn');
     await AsyncStorage.removeItem('userId');
     await AsyncStorage.removeItem('EmailAccount');
+    await AsyncStorage.removeItem('isLoggedService');
     navigation.navigate('Login');
   };
   const favoriteSettingHandal = async () => {
@@ -43,22 +43,28 @@ function Account({navigation, route}) {
     useCallback(() => {
       const fetchInfo = async () => {
         const mail = await AsyncStorage.getItem('EmailAccount');
-        try {
-          const querySnapshot = await firestore()
-            .collection('Users')
-            .where('email', '==', mail)
-            .get();
-          if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            setname(userData.name);
-            setphone(userData.phone);
-            setaccmail(mail);
+        const checkservice = await AsyncStorage.getItem('isLoggedService');
+        if (checkservice == 'false') {
+          try {
+            const querySnapshot = await firestore()
+              .collection('Users')
+              .where('email', '==', mail)
+              .get();
+            if (!querySnapshot.empty) {
+              const userData = querySnapshot.docs[0].data();
+              setname(userData.name);
+              setphone(userData.phone);
+              setaccmail(mail);
+            }
+          } catch (error) {
+            console.log('Error getting user information:', error);
           }
-        } catch (error) {
-          console.log('Error getting user information:', error);
+        } else {
+          let name = await AsyncStorage.getItem('Emailname');
+          await setname(name);
+          await setaccmail(mail);
         }
       };
-
       fetchInfo();
     }, []),
   );

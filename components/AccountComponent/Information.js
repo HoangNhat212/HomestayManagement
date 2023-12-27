@@ -64,6 +64,8 @@ function Information({route}) {
   const handleUpdateData = async () => {
     const updatedGender = chooseData;
     const mail = await AsyncStorage.getItem('EmailAccount');
+    const checkservice = await AsyncStorage.getItem('isLoggedService');
+
     firestore()
       .collection('Users')
       .where('email', '==', mail)
@@ -94,25 +96,33 @@ function Information({route}) {
 
   const checkInfo = async () => {
     const mail = await AsyncStorage.getItem('EmailAccount');
-    firestore()
-      .collection('Users')
-      .where('email', '==', mail)
-      .get()
-      .then(querySnapshot => {
-        if (querySnapshot.docs.length > 0) {
-          if (querySnapshot.docs[0]._data.email === mail) {
-            setname(querySnapshot.docs[0]._data.name);
-            setphone(querySnapshot.docs[0]._data.phone);
-            setgender(querySnapshot.docs[0]._data.gender);
-            setdob(querySnapshot.docs[0]._data.date_of_birth);
-            setPassword(querySnapshot.docs[0]._data.password);
-            setaccmail(mail);
+    const checkservice = await AsyncStorage.getItem('isLoggedService');
+    let name = '';
+    if (checkservice == 'true') {
+      name = await AsyncStorage.getItem('Emailname');
+      setname(name);
+      setaccmail(mail);
+    } else {
+      await firestore()
+        .collection('Users')
+        .where('email', '==', mail)
+        .get()
+        .then(querySnapshot => {
+          if (querySnapshot.docs.length > 0) {
+            if (querySnapshot.docs[0]._data.email === mail) {
+              setname(querySnapshot.docs[0]._data.name);
+              setphone(querySnapshot.docs[0]._data.phone);
+              setgender(querySnapshot.docs[0]._data.gender);
+              setdob(querySnapshot.docs[0]._data.date_of_birth);
+              setPassword(querySnapshot.docs[0]._data.password);
+              setaccmail(mail);
+            }
           }
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
   };
 
   return (
