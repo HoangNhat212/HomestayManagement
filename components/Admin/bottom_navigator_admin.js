@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/AntDesign';
 import colors from '../../assets/consts/colors';
 import sizes from '../../assets/consts/sizes';
 import Homescreen_admin from './homescreen_admin';
+import Rewards_admin from './Rewards_admin';
 
 const Bottom = createBottomTabNavigator();
 
@@ -35,6 +36,20 @@ function BottomTabs(props) {
           tabBarIcon: ({focused}) => (
             <Icon
               name="home"
+              size={sizes.iconMedium}
+              color={focused ? colors.yellow : colors.white}
+              style={styles.tabBarIcon}
+            />
+          ),
+        }}
+      />
+      <Bottom.Screen
+        name="Rewards"
+        component={Rewards_admin}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Icon
+              name="gift"
               size={sizes.iconMedium}
               color={focused ? colors.yellow : colors.white}
               style={styles.tabBarIcon}

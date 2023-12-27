@@ -19,11 +19,60 @@ import LinearGradient from 'react-native-linear-gradient';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import {el} from 'date-fns/locale';
-export default function Login({navigation}) {
+import {authorize} from 'react-native-app-auth';
+import axios from 'axios';
+function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSecure, setIsSecure] = useState(true);
+  const config = {
+    issuer: 'https://accounts.google.com',
+    clientId:
+      '690014602360-fblqp9s87rh31lsbn7oqmako3jfkcrgv.apps.googleusercontent.com',
+    redirectUrl: 'com.example.stelio:/oauth2callback',
+    scopes: ['openid', 'profile', 'email'],
+  };
+
+  const handelGoogleLogin = async () => {
+    try {
+      const result = await authorize(config);
+      console.log('authorized', result);
+      const userinfo = await getUserInfo(result.accessToken);
+      const userid = userinfo.id;
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      await AsyncStorage.setItem('userId', userid);
+      await AsyncStorage.setItem('EmailAccount', userinfo.email);
+      await AsyncStorage.setItem('Emailname', userinfo.name);
+      await AsyncStorage.setItem('isLoggedService', 'true');
+      navigation.navigate('BottomTabsNavigator', {email, userid});
+    } catch (e) {
+      throw new Error(e);
+    }
+  };
+
+  const getUserInfo = async accessToken => {
+    try {
+      // Gửi yêu cầu GET đến Google API UserInfo
+      const response = await axios.get(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Dữ liệu người dùng sẽ nằm trong response.data
+      const userData = response.data;
+
+      console.log('Thông tin người dùng từ Google:', userData);
+      return userData;
+    } catch (error) {
+      console.error('Lỗi khi lấy thông tin người dùng từ Google:', error);
+      throw error;
+    }
+  };
 
   const checkLoggedInStatus = async () => {
     const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
@@ -35,7 +84,6 @@ export default function Login({navigation}) {
       });
     }
   };
-
   useEffect(() => {
     checkLoggedInStatus();
   }, []);
@@ -71,6 +119,7 @@ export default function Login({navigation}) {
       const {user} = await auth().signInWithEmailAndPassword(email, password);
       const userId = user.uid;
       await AsyncStorage.setItem('isLoggedIn', 'true');
+      await AsyncStorage.setItem('isLoggedService', 'false');
       await AsyncStorage.setItem('userId', userId);
       await AsyncStorage.setItem('EmailAccount', email);
       navigation.navigate('BottomTabsNavigator', {email, userId});
@@ -80,23 +129,6 @@ export default function Login({navigation}) {
   };
   const loginAd = async () => {
     navigation.navigate('BottomTabsNavigator_Admin');
-  };
-  const handleLogin = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await AsyncStorage.setItem('isLoggedIn', 'true');
-      await AsyncStorage.setItem('userId', 'your_user_id');
-      navigation.navigate('BottomTabsNavigator', {
-        email,
-        userId: 'your_user_id',
-      });
-    } catch (error) {
-      console.log(error);
-      alert('Login failed');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const toggleSecureEntry = () => {
@@ -162,7 +194,7 @@ export default function Login({navigation}) {
         <View style={styles.socialButtonsContainer}>
           <TouchableOpacity
             style={styles.socialButton}
-            onPress={() => Alert.alert('Login with Google')}>
+            onPress={() => handelGoogleLogin()}>
             <Icon name="google" size={24} color="#DB4437" />
           </TouchableOpacity>
           <TouchableOpacity
@@ -278,3 +310,4 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 });
+export default Login;
