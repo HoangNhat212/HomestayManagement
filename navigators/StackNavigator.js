@@ -26,6 +26,7 @@ import RoomType_admin from '../components/Admin/RoomType_admin';
 import EditRoomType_admin from '../components/Admin/EditRoomType_admin';
 import AddRoomType_admin from '../components/Admin/AddRoomType_admin';
 import AddVoucher_admin from '../components/Admin/AddVoucher_admin';
+import DetailVoucher_admin from '../components/Admin/DetailVoucher_admin';
 
 const Stack = createNativeStackNavigator();
 const myTheme = {
@@ -113,6 +114,11 @@ function StackTabs() {
       <Stack.Screen
         name="AddRoomType_admin"
         component={AddRoomType_admin}
+        options={{headerShown: true}}
+      />
+      <Stack.Screen
+        name="DetailVoucher_admin"
+        component={DetailVoucher_admin}
         options={{headerShown: true}}
       />
       <Stack.Screen

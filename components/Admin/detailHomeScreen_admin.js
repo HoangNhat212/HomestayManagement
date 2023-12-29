@@ -24,10 +24,10 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
   const [slogan, setSlogan] = useState(homestay.slogan);
   const [detail, setDetail] = useState(homestay.details);
   const [extensions, setExtensions] = useState({
-    buffet: homestay.extension['Buffet'] == '1' ? true : false,
-    carPark: homestay.extension['Car_park'] == '1' ? true : false,
-    motorBike: homestay.extension['MotorBike'] == '1' ? true : false,
-    wifi: homestay.extension['Wifi'] == '1' ? true : false,
+    buffet: homestay.extension['Buffet'] == 1 ? true : false,
+    carPark: homestay.extension['Car_park'] == 1 ? true : false,
+    motorBike: homestay.extension['MotorBike'] == 1 ? true : false,
+    wifi: homestay.extension['Wifi'] == 1 ? true : false,
   });
 
   const fetchRooms = useCallback(async () => {

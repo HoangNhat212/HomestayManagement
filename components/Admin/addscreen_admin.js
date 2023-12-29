@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,26 +6,20 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  Image,
+  Button,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 import {FlatList, ScrollView} from 'react-native-gesture-handler';
-
-const AddScreen_admin = () => {
-  const [name, setName] = useState();
-  const [location, setLocation] = useState();
-  const [policy, setPolicy] = useState();
-  const [price, setPrice] = useState();
-  const [province, setProvince] = useState();
-  const [slogan, setSlogan] = useState();
-  const [detail, setDetail] = useState();
-  const [extensions, setExtensions] = useState({
-    buffet: false,
-    carPark: false,
-    motorBike: false,
-    wifi: false,
-  });
+import {launchImageLibrary} from 'react-native-image-picker';
+import uuid from 'uuid-random';
+import storage from '@react-native-firebase/storage';
+import database from '@react-native-firebase/database';
+import {id} from 'date-fns/locale';
+const AddScreen_admin = ({navigation}) => {
   const provinces = [
     'Hà Nội',
     'Hồ Chí Minh',
@@ -90,16 +84,123 @@ const AddScreen_admin = () => {
     'Vĩnh Phúc',
     'Yên Bái',
   ];
-  const handleSave = () => {
+  const [name, setName] = useState();
+  const [location, setLocation] = useState();
+  const [policy, setPolicy] = useState();
+  const [price, setPrice] = useState();
+  const [province, setProvince] = useState(provinces[0]);
+  const [slogan, setSlogan] = useState();
+  const [detail, setDetail] = useState();
+  const [extensions, setExtensions] = useState({
+    Buffet: false,
+    Car_Park: false,
+    MotorBike: false,
+    Wifi: false,
+  });
+  const [selectedType, setSelectedTypes] = useState({
+    Travel: false,
+    Luxury: false,
+    Couple: false,
+    Trending: false,
+    'For sales': false,
+  });
+  const [image, setImage] = useState(null);
+  const [coordinates, setCoordinates] = useState({
+    latitude: null,
+    longitude: null,
+  });
+  const processExtensions = extensions => {
+    let processedExtensions = {};
+    for (let key in extensions) {
+      processedExtensions[key] = extensions[key] ? 1 : 0;
+    }
+    return processedExtensions;
+  };
+  const newHomestay = {
+    homestay_id: null,
+    name: name,
+    location: location,
+    policy: policy,
+    price: price,
+    province: province,
+    slogan: slogan,
+    details: detail,
+    extension: processExtensions(extensions),
+    type: '',
+    distance: '',
+    rating: '4.0',
+    ratingvote: '100',
+    image: image,
+    coordinates: coordinates,
+  };
+  const handleSetCoordinates = (latitude, longitude) => {
+    setCoordinates({
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    });
+  };
+  const handleChooseImage = () => {
+    let options = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        const responseObject =
+          typeof response === 'string' ? JSON.parse(response) : response;
+        let uri = responseObject.assets[0].uri;
+        setImage(uri);
+      }
+    });
+  };
+
+  const handleSave = async () => {
     // Đoạn mã để xử lý khi người dùng lưu thông tin
-    console.log('Name:', name);
-    console.log('Location:', location);
-    console.log('Policy:', policy);
-    console.log('Price:', price);
-    console.log('Province:', province);
-    console.log('Slogan:', slogan);
-    console.log('Detail:', detail);
-    console.log('Extensions:', extensions);
+    let id = uuid();
+    const storageRef = storage().ref(`vouchers/${id}`);
+    // Convert your image file to a Blob
+    const response = await fetch(image);
+    const imageBlob = await response.blob();
+    // Upload the image to Firebase Storage
+    await storageRef.put(imageBlob);
+    const imageUrl = await storageRef.getDownloadURL();
+    let count = (await database().ref('homestays').once('value')).numChildren();
+    let type = {0: 'Hourly', 1: 'Overnight'};
+    let index = 2;
+    Object.entries(selectedType).forEach(([key, value]) => {
+      if (value && key !== 'Hourly' && key !== 'Overnight') {
+        type[index++] = key;
+      }
+    });
+    let idhomestay = (count + 1).toString();
+    const processedData = {
+      ...newHomestay,
+      type: type,
+      price: parseInt(price),
+      image: imageUrl,
+      homestay_id: idhomestay,
+      coordinates: {
+        latitude: parseFloat(coordinates.latitude),
+        longitude: parseFloat(coordinates.longitude),
+      },
+    };
+
+    database()
+      .ref('homestays/' + count)
+      .set(processedData)
+      .then(() => {
+        console.log('Data set.');
+        Alert.alert('Success', 'Add homestay successfully');
+        navigation.goBack();
+      });
+
     // Thêm các logic xử lý lưu dữ liệu vào cơ sở dữ liệu nếu cần
   };
 
@@ -108,6 +209,10 @@ const AddScreen_admin = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
       <ScrollView>
+        {newHomestay.image && (
+          <Image source={{uri: image}} style={{width: 200, height: 200}} />
+        )}
+        <Button title="Choose Image" onPress={handleChooseImage} />
         <Text style={styles.label}>Name:</Text>
         <TextInput
           style={styles.input}
@@ -122,6 +227,20 @@ const AddScreen_admin = () => {
           value={location}
           onChangeText={text => setLocation(text)}
           placeholder="Enter location"
+        />
+        <TextInput
+          placeholder="Latitude"
+          value={coordinates.latitude}
+          onChangeText={latitude => setCoordinates({...coordinates, latitude})}
+          keyboardType="numeric"
+        />
+        <TextInput
+          placeholder="Longitude"
+          value={coordinates.longitude}
+          onChangeText={longitude =>
+            setCoordinates({...coordinates, longitude})
+          }
+          keyboardType="numeric"
         />
 
         <Text style={styles.label}>Policy:</Text>
@@ -175,6 +294,19 @@ const AddScreen_admin = () => {
               value={extensions[key]}
               onValueChange={value =>
                 setExtensions({...extensions, [key]: value})
+              }
+            />
+            <Text style={styles.label}>{key}</Text>
+          </View>
+        ))}
+
+        <Text style={styles.label}>Type:</Text>
+        {Object.keys(selectedType).map(key => (
+          <View key={key} style={styles.checkboxContainer}>
+            <CheckBox
+              value={selectedType[key]}
+              onValueChange={value =>
+                setSelectedTypes({...selectedType, [key]: value})
               }
             />
             <Text style={styles.label}>{key}</Text>

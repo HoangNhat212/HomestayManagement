@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,33 +10,15 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {
-  launchImageLibrary,
-  uploadImageToServer,
-} from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import storage from '@react-native-firebase/storage';
 import uuid from 'uuid-random';
 import database from '@react-native-firebase/database';
-const AddVoucher_admin = ({navigation}) => {
-  const [voucherData, setVoucherData] = useState({
-    code: '',
-    date_end: '',
-    date_start: '',
-    details: '',
-    id: '',
-    image: '',
-    name: '',
-    notice: '',
-    quantity: '',
-    sale_off: '',
-    title: '',
-    value: '',
-  });
-
+const DetailVoucher_admin = ({route, navigation}) => {
+  const [voucherData, setVoucherData] = useState(route.params);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedDateField, setSelectedDateField] = useState('');
-  const [image, setImage] = useState(null);
-
+  useEffect(() => console.log(voucherData), []);
   const showDatePicker = field => {
     setSelectedDateField(field);
     setDatePickerVisibility(true);
@@ -61,7 +43,7 @@ const AddVoucher_admin = ({navigation}) => {
         const responseObject =
           typeof response === 'string' ? JSON.parse(response) : response;
         let uri = responseObject.assets[0].uri;
-        setImage(uri);
+        setVoucherData(prevState => ({...prevState, image: uri}));
       }
     });
   };
@@ -99,17 +81,17 @@ const AddVoucher_admin = ({navigation}) => {
       let id = uuid();
       const storageRef = storage().ref(`vouchers/${id}`);
       // Convert your image file to a Blob
-      const response = await fetch(image);
+      const response = await fetch(voucherData.image);
       const imageBlob = await response.blob();
 
       // Upload the image to Firebase Storage
-      await storageRef.put(imageBlob);
+      const snapshot = await storageRef.put(imageBlob);
       const vouchersRef = database().ref('voucher');
       const vouch = await vouchersRef.once('value');
       const voucherCount = vouch.numChildren();
 
       // Determine the next index for the new voucher
-      const newIndex = voucherCount + 1;
+      const newIndex = voucherData.id;
       // Get the download URL of the image
       const imageUrl = await storageRef.getDownloadURL();
       // Create a reference to the database location
@@ -124,10 +106,8 @@ const AddVoucher_admin = ({navigation}) => {
         value: parseFloat(voucherData.value), // Parse value as float
         quantity: parseInt(voucherData.quantity, 10), // Parse quantity as integer
       };
-      console.log(dataToSave);
-      dbRef.set(dataToSave).then(() => {
+      dbRef.update(dataToSave).then(() => {
         console.log('Voucher saved successfully!');
-        navigation.goBack();
       });
       // Save the voucher data to Firebase Realtime Database
     } catch (error) {
@@ -173,8 +153,8 @@ const AddVoucher_admin = ({navigation}) => {
 
       <Button title="Choose Image" onPress={handleChooseImage} />
 
-      {image && (
-        <Image source={{uri: image}} style={{width: 200, height: 200}} />
+      {voucherData.image && (
+        <Image source={{uri: voucherData.image}} style={styles.imagePreview} />
       )}
 
       {/* Name Input */}
@@ -235,9 +215,6 @@ const AddVoucher_admin = ({navigation}) => {
       />
 
       {/* Image preview */}
-      {voucherData.image && (
-        <Image source={{uri: image}} style={styles.imagePreview} />
-      )}
 
       {/* Date picker modal */}
       <DateTimePickerModal
@@ -282,4 +259,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddVoucher_admin;
+export default DetailVoucher_admin;

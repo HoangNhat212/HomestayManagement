@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,11 +11,14 @@ import database from '@react-native-firebase/database';
 
 const Homescreen_admin = ({navigation}) => {
   const [data, setData] = useState([]);
-  database()
-    .ref('/homestays')
-    .on('value', snapshot => {
-      setData(snapshot.val());
-    });
+  useEffect(() => {
+    database()
+      .ref('/homestays')
+      .on('value', snapshot => {
+        setData(snapshot.val());
+        console.log('I am here');
+      });
+  }, []);
 
   const renderItem = ({item}) => {
     return (
