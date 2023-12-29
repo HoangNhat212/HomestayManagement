@@ -21,6 +21,7 @@ import auth from '@react-native-firebase/auth';
 import {el} from 'date-fns/locale';
 import {authorize} from 'react-native-app-auth';
 import axios from 'axios';
+
 function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,11 +41,20 @@ function Login({navigation}) {
       console.log('authorized', result);
       const userinfo = await getUserInfo(result.accessToken);
       const userid = userinfo.id;
+      console.log(userinfo);
       await AsyncStorage.setItem('isLoggedIn', 'true');
       await AsyncStorage.setItem('userId', userid);
       await AsyncStorage.setItem('EmailAccount', userinfo.email);
       await AsyncStorage.setItem('Emailname', userinfo.name);
       await AsyncStorage.setItem('isLoggedService', 'true');
+      await firestore().collection('Users').doc(userid).set({
+        name: userinfo.name,
+        email: userinfo.email,
+        phone: '',
+        password: '',
+        gender: '',
+        date_of_birth: '',
+      });
       navigation.navigate('BottomTabsNavigator', {email, userid});
     } catch (e) {
       throw new Error(e);

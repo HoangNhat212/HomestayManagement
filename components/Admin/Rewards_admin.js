@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,18 +7,32 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import database from '@react-native-firebase/database';
 const Rewards_admin = ({navigation}) => {
   const [data, setData] = useState([]);
-  database()
-    .ref('/voucher')
-    .on('value', snapshot => {
-      setData(snapshot.val());
-    });
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = () => {
+        database()
+          .ref('/voucher')
+          .on('value', snapshot => {
+            setData(snapshot.val());
+          });
+      };
 
+      fetchData(); // Call the fetchData function when the screen gains focus
+
+      // Cleanup function (unsubscribe from the event)
+      return () => {
+        database().ref('/voucher').off('value');
+      };
+    }, []),
+  );
   const renderItem = ({item}) => {
     return (
-      <TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('DetailVoucher_admin', item)}>
         <View style={styles.itemContainer}>
           <Image source={{uri: item.image}} style={styles.itemImage} />
           <Text style={styles.itemText}>{item.name}</Text>
