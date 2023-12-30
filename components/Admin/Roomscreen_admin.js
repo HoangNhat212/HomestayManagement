@@ -1,9 +1,62 @@
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
-
+import database from '@react-native-firebase/database';
+import {useFocusEffect} from '@react-navigation/native';
 const Roomscreen_admin = ({route, navigation}) => {
-  const {rooms, roomtype} = route.params;
+  const {
+    rooms: initialRooms,
+    roomtype: initialRoomType,
+    homestay,
+  } = route.params;
+  const [rooms, setRooms] = useState([]);
+  const [roomtype, setRoomTypes] = useState([]);
 
+  const fetchRooms = useCallback(async () => {
+    const snapshot = await database().ref('rooms').once('value');
+    if (snapshot && snapshot.val) {
+      const data = snapshot.val();
+      const roomsData = Object.values(data);
+      const classifiedRooms = {};
+      roomsData.forEach(room => {
+        if (classifiedRooms.hasOwnProperty(room.roomtype_id)) {
+          classifiedRooms[room.roomtype_id].push(room);
+        } else {
+          classifiedRooms[room.roomtype_id] = [room];
+        }
+      });
+      const filterclassifiedRooms = Object.keys(classifiedRooms)
+        .map(key => classifiedRooms[key])
+        .flat()
+        .filter(
+          roomA =>
+            roomtype &&
+            roomtype.some(roomB => roomB.roomtype_id == roomA.roomtype_id),
+        );
+      const updatedRooms = filterclassifiedRooms;
+      setRooms(updatedRooms);
+    }
+  }, [roomtype]);
+
+  const fetchRoomTypes = useCallback(async () => {
+    const snapshot = await database().ref('roomtypes').once('value');
+    if (snapshot && snapshot.val) {
+      const data = snapshot.val();
+      const roomTypesData = Object.values(data);
+      const filteredRoomTypes = roomTypesData.filter(
+        roomType => roomType.homestay_id == homestay.homestay_id,
+      );
+
+      await setRoomTypes(filteredRoomTypes);
+    }
+  }, [homestay.homestay_id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRoomTypes().then(() => {
+        fetchRooms();
+      });
+    }, []),
+  );
   // Hàm để lấy room_type từ roomtype_id
   const getRoomType = roomtype_id => {
     const foundRoomType = roomtype.find(
@@ -24,8 +77,15 @@ const Roomscreen_admin = ({route, navigation}) => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('RoomType_admin', roomtype)}>
+          onPress={() =>
+            navigation.navigate('RoomType_admin', {roomtype, homestay})
+          }>
           <Text style={styles.buttonText}>RoomType</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('AddRoom_admin', {homestay})}>
+          <Text style={styles.buttonText}>AddRoom</Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -45,6 +105,10 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'flex-end',
     marginBottom: 10,
+    flexDirection: 'row', // Sắp xếp các phần tử con theo chiều ngang
+    justifyContent: 'space-around', // Các phần tử con được căn cách đều ra hai phía
+    paddingHorizontal: 10, // Thêm khoảng trắng ở hai đầu
+    marginTop: 20,
   },
   button: {
     backgroundColor: 'blue',

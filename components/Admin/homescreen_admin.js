@@ -16,7 +16,6 @@ const Homescreen_admin = ({navigation}) => {
       .ref('/homestays')
       .on('value', snapshot => {
         setData(snapshot.val());
-        console.log('I am here');
       });
   }, []);
 
