@@ -97,7 +97,6 @@ const DetailVoucher_admin = ({route, navigation}) => {
       // Create a reference to the database location
       let path = 'voucher/' + (newIndex - 1).toString();
       const dbRef = database().ref(path);
-      console.log(dbRef);
       // Prepare the voucher data
       const dataToSave = {
         ...voucherData,

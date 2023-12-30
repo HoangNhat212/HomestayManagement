@@ -35,7 +35,6 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
     if (snapshot && snapshot.val) {
       const data = snapshot.val();
       const roomsData = Object.values(data);
-      console.log(roomtype);
       // Tạo một đối tượng để phân loại các phòng theo roomtype_id
       const classifiedRooms = {};
       roomsData.forEach(room => {
@@ -156,7 +155,7 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
     // Thêm các logic xử lý lưu dữ liệu vào cơ sở dữ liệu nếu cần
   };
   const listroomNav = async () => {
-    navigation.navigate('RoomScreen_admin', {rooms, roomtype});
+    navigation.navigate('RoomScreen_admin', {rooms, roomtype, homestay});
   };
 
   return (

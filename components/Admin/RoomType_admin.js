@@ -1,9 +1,37 @@
-import React from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
-
+import database from '@react-native-firebase/database';
+import {useFocusEffect} from '@react-navigation/native';
+import {set} from 'date-fns';
 const RoomType_admin = ({route, navigation}) => {
-  const roomtype = route.params;
+  const {roomtype: initialRoomType, homestay} = route.params;
+  const [roomtype, setRoomTypes] = useState([]);
 
+  const fetchRoomTypes = async () => {
+    try {
+      const snapshot = await database().ref('roomtypes').once('value');
+      if (snapshot && snapshot.val) {
+        const data = snapshot.val();
+        const roomTypesData = Object.values(data);
+        const filteredRoomTypes = roomTypesData.filter(
+          roomType => roomType.homestay_id == homestay.homestay_id,
+        );
+        console.log('hiii');
+        setRoomTypes(filteredRoomTypes);
+      }
+    } catch (error) {
+      console.error('Error fetching room types:', error);
+    }
+  };
+
+  // useFocusEffect will be called every time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused, calling fetchRoomTypes');
+      fetchRoomTypes();
+      return () => setRoomTypes([]);
+    }, []),
+  );
   const renderItem = ({item}) => (
     <TouchableOpacity
       onPress={() => navigation.navigate('EditRoomType_admin', item)}>
@@ -23,7 +51,7 @@ const RoomType_admin = ({route, navigation}) => {
   );
 
   const handleAddRoomPress = () => {
-    navigation.navigate('AddRoomType_admin');
+    navigation.navigate('AddRoomType_admin', homestay);
   };
 
   return (
