@@ -51,6 +51,7 @@ function Login({navigation}) {
         name: userinfo.name,
         email: userinfo.email,
         phone: '',
+        permission: 1,
         password: '',
         gender: '',
         date_of_birth: '',
@@ -101,6 +102,29 @@ function Login({navigation}) {
   const checkLogin = () => {
     if (email == 'admin' && password == '123') {
       loginAd();
+    } else if (/@stelio/.test(email)) {
+      firestore()
+        .collection('AccountHomestay')
+        .where('email', '==', email)
+        .get()
+        .then(querySnapshot => {
+          if (!querySnapshot.empty) {
+            const user = querySnapshot.docs[0].data();
+            let homeid = user.homestay_id;
+            if (user.password === password) {
+              navigation.navigate('BottomTabsNavigator_HomeStayAccount', {
+                homeid,
+              });
+            } else {
+              alert('Wrong password');
+            }
+          } else {
+            alert('Account not found');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
     } else {
       firestore()
         .collection('Users')
@@ -137,6 +161,7 @@ function Login({navigation}) {
       alert('Login failed');
     }
   };
+
   const loginAd = async () => {
     navigation.navigate('BottomTabsNavigator_Admin');
   };

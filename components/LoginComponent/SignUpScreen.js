@@ -67,6 +67,7 @@ const SignUp = ({navigation}) => {
         phone: phonenumber,
         password: checkpassword,
         gender: '',
+        permission: 1,
         date_of_birth: '',
       });
       backloginscreen();
