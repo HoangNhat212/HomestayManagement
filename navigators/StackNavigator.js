@@ -28,6 +28,7 @@ import AddRoomType_admin from '../components/Admin/AddRoomType_admin';
 import AddVoucher_admin from '../components/Admin/AddVoucher_admin';
 import DetailVoucher_admin from '../components/Admin/DetailVoucher_admin';
 import AddRoom_admin from '../components/Admin/AddRoom_admin';
+import BottomTabsNavigator_HomeStayUser from '../components/AccountHomestay/BottomNavigation_homeuser';
 
 const Stack = createNativeStackNavigator();
 const myTheme = {
@@ -66,6 +67,14 @@ function StackTabs() {
       <Stack.Screen
         name="BottomTabsNavigator_Admin"
         component={BottomTabsNavigator_Admin}
+        options={{
+          headerTitle: 'HomeScreen', // Đổi tên header ở đây
+          headerShown: true, // Nếu muốn hiển thị header
+        }}
+      />
+      <Stack.Screen
+        name="BottomTabsNavigator_HomeStayAccount"
+        component={BottomTabsNavigator_HomeStayUser}
         options={{
           headerTitle: 'HomeScreen', // Đổi tên header ở đây
           headerShown: true, // Nếu muốn hiển thị header
