@@ -345,39 +345,39 @@ const DetailHomestayScreen = ({navigation, route}) => {
 
   const fetchRooms = useCallback(async () => {
     setIsDataLoaded(false);
-    const snapshot = await database().ref('rooms').once('value');
-    if (snapshot && snapshot.val) {
-      const data = snapshot.val();
-      const roomsData = Object.values(data);
-
-      // Tạo một danh sách tất cả các phòng có sẵn
-      const availableRooms = [];
-      for (const room of roomsData) {
-        const isAvailable = await isRoomAvailable(
-          room,
-          selector.checkIn,
-          selector.checkOut,
-        );
-        if (isAvailable) {
-          availableRooms.push(room);
-        }
+  
+    try {
+      const snapshot = await database().ref('rooms').once('value');
+  
+      if (snapshot && snapshot.val) {
+        const data = snapshot.val();
+        const roomsData = Object.values(data);
+  
+        const availableRooms = await Promise.all(roomsData.map(async (room) => {
+          const isAvailable = await isRoomAvailable(room, selector.checkIn, selector.checkOut);
+          return isAvailable ? room : null;
+        }));
+  
+        // Lọc bỏ các phòng không khả dụng
+        const filteredAvailableRooms = availableRooms.filter(room => room !== null);
+  
+        // Sử dụng reduce để phân loại phòng
+        const classifiedRooms = filteredAvailableRooms.reduce((acc, room) => {
+          const key = room.roomtype_id;
+          acc[key] = (acc[key] || []).concat(room);
+          return acc;
+        }, {});
+  
+        // Cập nhật trạng thái ngay khi dữ liệu sẵn sàng
+        setRooms(classifiedRooms);
+        setIsDataLoaded(true);
       }
-
-      // Tạo một đối tượng để phân loại các phòng theo roomtype_id
-      const classifiedRooms = {};
-      availableRooms.forEach(room => {
-        if (classifiedRooms.hasOwnProperty(room.roomtype_id)) {
-          classifiedRooms[room.roomtype_id].push(room);
-        } else {
-          classifiedRooms[room.roomtype_id] = [room];
-        }
-      });
-
-      // Lưu trữ các phòng đã phân loại và kiểm tra sẵn sàng vào state
-      setRooms(classifiedRooms);
-      setIsDataLoaded(true);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+      // Xử lý lỗi nếu cần thiết
     }
   }, [selector.checkIn, selector.checkOut]);
+  
 
   useEffect(() => {
     fetchRooms();
