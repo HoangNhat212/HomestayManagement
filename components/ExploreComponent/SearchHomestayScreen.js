@@ -157,7 +157,7 @@ const SearchHomestay = ({navigation, route}) => {
   const [sheetRefOpen, setSheetRefOpen] = useState(false);
 
   // variables
-  const snapRefPoints = useMemo(() => ['3%', '50%', '93%'], []);
+  const snapRefPoints = useMemo(() => ['8%', '50%', '93%'], []);
 
   // callbacks
   const handleRefChange = useCallback(index => {
