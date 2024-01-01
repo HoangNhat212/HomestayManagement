@@ -19,6 +19,8 @@ import uuid from 'uuid-random';
 import storage from '@react-native-firebase/storage';
 import database from '@react-native-firebase/database';
 import {id} from 'date-fns/locale';
+import {KEY} from '@env';
+import CryptoJS from 'react-native-crypto-js';
 import firestore from '@react-native-firebase/firestore';
 const AddScreen_admin = ({navigation}) => {
   const provinces = [
@@ -192,6 +194,7 @@ const AddScreen_admin = ({navigation}) => {
         longitude: parseFloat(coordinates.longitude),
       },
     };
+    let pass = CryptoJS.AES.encrypt('123', KEY).toString();
     const userDocument = database()
       .ref('homestays/' + count)
       .set(processedData)
@@ -202,13 +205,11 @@ const AddScreen_admin = ({navigation}) => {
           .collection('AccountHomestay')
           .add({
             email: name + '@stelio',
-            password: '123',
+            password: pass,
             homestay_id: idhomestay,
           });
         navigation.goBack();
       });
-
-    // Thêm các logic xử lý lưu dữ liệu vào cơ sở dữ liệu nếu cần
   };
 
   return (
