@@ -17,7 +17,6 @@ import {set} from 'date-fns';
 const DetailHomeScreenAdmin = ({route, navigation}) => {
   const {item, provinces} = route.params;
   const homestay = item;
-  console.log('HOMESTAY', homestay);
   const [rooms, setRooms] = useState([]);
   const [roomtype, setRoomTypes] = useState([]);
   const [name, setName] = useState(item.name);

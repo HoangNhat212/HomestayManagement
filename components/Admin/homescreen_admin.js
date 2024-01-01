@@ -57,7 +57,7 @@ const Homescreen_admin = ({navigation}) => {
       <View style={styles.addButtonContainer}>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate('AddScreen_Admin')}>
+          onPress={() => navigation.navigate('AddScreen_Admin', provinces)}>
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>

@@ -266,7 +266,7 @@ const PayScreen = ({navigation, route}) => {
       ...data,
       booking_id: booking_id,
       total_price: totalPrice,
-      status: 'booked',
+      status: 'Waiting',
     };
 
     addBookingToRealtimeDatabase(newBooking);
