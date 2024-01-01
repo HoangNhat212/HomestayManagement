@@ -21,7 +21,8 @@ import auth from '@react-native-firebase/auth';
 import {el} from 'date-fns/locale';
 import {authorize} from 'react-native-app-auth';
 import axios from 'axios';
-
+import {KEY} from '@env';
+import CryptoJS from 'react-native-crypto-js';
 function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -111,7 +112,8 @@ function Login({navigation}) {
           if (!querySnapshot.empty) {
             const user = querySnapshot.docs[0].data();
             let homeid = user.homestay_id;
-            if (user.password === password) {
+            let deencrypt = CryptoJS.AES.decrypt(user.password, KEY).toString();
+            if (deencrypt === password) {
               navigation.navigate('BottomTabsNavigator_HomeStayAccount', {
                 homeid,
               });

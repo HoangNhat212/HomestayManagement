@@ -24,7 +24,6 @@ import colors from '../../assets/consts/colors';
 const PayScreen = ({navigation, route}) => {
   const data = route.params;
   console.log(data);
-
   const selector = useSelector(state => state.timestamp);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [homestay, setHomestay] = useState();
@@ -41,6 +40,10 @@ const PayScreen = ({navigation, route}) => {
 
   const handleCloseAlert = () => {
     setShowAlert(false);
+  };
+
+  const handleInputChange = text => {
+    setInputValue(text);
   };
 
   const handleOptionSelect = option => {
@@ -263,7 +266,7 @@ const PayScreen = ({navigation, route}) => {
       ...data,
       booking_id: booking_id,
       total_price: totalPrice,
-      status: 'Waiting',
+      status: 'booked',
     };
 
     addBookingToRealtimeDatabase(newBooking);
@@ -398,7 +401,7 @@ const PayScreen = ({navigation, route}) => {
                 color: colors.primary,
               }}
               value={inputValue}
-              onChangeText={text => setInputValue(text)}
+              onChangeText={text => handleInputChange(text)}
               placeholder="Enter a code"
               onSubmitEditing={() => handleCheckCode()}
             />

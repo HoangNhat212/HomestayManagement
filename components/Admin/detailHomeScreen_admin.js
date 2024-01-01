@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
@@ -16,6 +17,7 @@ import {set} from 'date-fns';
 const DetailHomeScreenAdmin = ({route, navigation}) => {
   const {item, provinces} = route.params;
   const homestay = item;
+  console.log('HOMESTAY', homestay);
   const [rooms, setRooms] = useState([]);
   const [roomtype, setRoomTypes] = useState([]);
   const [name, setName] = useState(item.name);
@@ -72,7 +74,7 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
             roomtype.some(roomB => roomB.roomtype_id === roomA.roomtype_id),
         );
       const updatedRooms = filterclassifiedRooms;
-
+      console.log('HAAAA', updatedRooms);
       setRooms(updatedRooms);
     }
   }, [roomtype]);
@@ -87,6 +89,7 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
         roomType => roomType.homestay_id === item.homestay_id,
       );
       let updatedRoomTypes = filteredRoomTypes;
+      console.log('HIIIII', updatedRoomTypes);
       await setRoomTypes(updatedRoomTypes);
     }
   }, [item.homestay_id]);
@@ -129,7 +132,8 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
         details: detail,
         extension: updatedExtensions,
         type: typesArray,
-      });
+      })
+      .then(() => Alert.alert('Update successfully!'));
   };
   const listroomNav = async () => {
     navigation.navigate('RoomScreen_admin', {rooms, roomtype, homestay});

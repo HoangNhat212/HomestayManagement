@@ -46,6 +46,7 @@ import utils from '../../assets/consts/utils';
 
 const DetailHomestayScreen = ({navigation, route}) => {
   const homestay = route.params;
+  console.log('HOMESTAY', homestay);
   const timeType = useSelector(state => state.timestamp.timeType);
   const selector = useSelector(state => state.timestamp);
   const dispatch = useDispatch();
@@ -335,9 +336,9 @@ const DetailHomestayScreen = ({navigation, route}) => {
             roomType.homestay_id === homestay.homestay_id &&
             roomType.timetype.includes(timeType),
         );
-        console.log(filteredRoomTypes, homestay.homestay_id);
         // Lưu trữ danh sách kiểu phòng đã lọc vào state
         setRoomTypes(filteredRoomTypes);
+        console.log('ROOMTYPES', filteredRoomTypes);
       }
     };
     fetchRoomTypes();
@@ -345,39 +346,46 @@ const DetailHomestayScreen = ({navigation, route}) => {
 
   const fetchRooms = useCallback(async () => {
     setIsDataLoaded(false);
-  
+
     try {
       const snapshot = await database().ref('rooms').once('value');
-  
+
       if (snapshot && snapshot.val) {
         const data = snapshot.val();
         const roomsData = Object.values(data);
-  
-        const availableRooms = await Promise.all(roomsData.map(async (room) => {
-          const isAvailable = await isRoomAvailable(room, selector.checkIn, selector.checkOut);
-          return isAvailable ? room : null;
-        }));
-  
+
+        const availableRooms = await Promise.all(
+          roomsData.map(async room => {
+            const isAvailable = await isRoomAvailable(
+              room,
+              selector.checkIn,
+              selector.checkOut,
+            );
+            return isAvailable ? room : null;
+          }),
+        );
+
         // Lọc bỏ các phòng không khả dụng
-        const filteredAvailableRooms = availableRooms.filter(room => room !== null);
-  
+        const filteredAvailableRooms = availableRooms.filter(
+          room => room !== null,
+        );
+
         // Sử dụng reduce để phân loại phòng
         const classifiedRooms = filteredAvailableRooms.reduce((acc, room) => {
           const key = room.roomtype_id;
           acc[key] = (acc[key] || []).concat(room);
           return acc;
         }, {});
-  
+
         // Cập nhật trạng thái ngay khi dữ liệu sẵn sàng
         setRooms(classifiedRooms);
         setIsDataLoaded(true);
       }
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+      console.error('Error fetching rooms:', error);
       // Xử lý lỗi nếu cần thiết
     }
   }, [selector.checkIn, selector.checkOut]);
-  
 
   useEffect(() => {
     fetchRooms();
