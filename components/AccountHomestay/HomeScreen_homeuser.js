@@ -1,49 +1,70 @@
-import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import CardList from './CardList';
+import {useFocusEffect} from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import moment from 'moment';
 
-const HomeScreen_homeuser = ({route}) => {
+const HomeScreen_homeuser = ({route, navigation}) => {
   const {homeid} = route.params;
+  const [bookingData, setBookingData] = useState([]);
+  const [filterOption, setFilterOption] = useState('all'); // 'all' or 'current'
 
-  const sampleData = [
-    {
-      id: 1,
-      name: 'John Doe',
-      check_in: '2023-01-01',
-      check_out: '2023-01-05',
-      total_price: 500,
-      status: 'Paid',
-    },
-    {
-      id: 2,
-      name: 'Jane Doe',
-      check_in: '2023-02-01',
-      check_out: '2023-02-10',
-      total_price: 800,
-      status: 'Waiting',
-    },
-    {
-      id: 3,
-      name: 'Jane Doe',
-      check_in: '2023-02-01',
-      check_out: '2023-02-10',
-      total_price: 800,
-      status: 'Waiting',
-    },
-    {
-      id: 4,
-      name: 'Jane Doe',
-      check_in: '2023-02-01',
-      check_out: '2023-02-10',
-      total_price: 800,
-      status: 'Waiting',
-    },
-    // Add more data as needed
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, []),
+  );
+
+  const fetchData = async () => {
+    try {
+      let query = firestore()
+        .collection('Booking')
+        .where('homestay_id', '==', homeid);
+
+      // Apply date filter based on the selected option
+      if (filterOption === 'current') {
+        const currentDate = moment().startOf('day');
+        query = query.where('check_in', '>=', currentDate.toDate());
+      }
+
+      const querySnapshot = await query.get();
+
+      // Extract data from the query snapshot
+      const data = querySnapshot.docs.map(doc => doc.data());
+
+      // Update state with the fetched data
+      setBookingData(data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const handleFilterPress = option => {
+    setFilterOption(option);
+  };
 
   return (
     <View style={styles.container}>
-      <CardList data={sampleData} />
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filterOption === 'all' && styles.activeFilter,
+          ]}
+          onPress={() => handleFilterPress('all')}>
+          <Text style={styles.filterButtonText}>All Days</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filterOption === 'current' && styles.activeFilter,
+          ]}
+          onPress={() => handleFilterPress('current')}>
+          <Text style={styles.filterButtonText}>Current Day</Text>
+        </TouchableOpacity>
+      </View>
+      <CardList data={bookingData} navigation={navigation} />
     </View>
   );
 };
@@ -53,10 +74,23 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 80,
   },
-  text: {
-    fontSize: 14,
-    color: 'black',
-    marginBottom: 20,
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10,
+  },
+  filterButton: {
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  activeFilter: {
+    backgroundColor: '#eee',
+  },
+  filterButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,24 +1,55 @@
-import React from 'react';
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import firestore from '@react-native-firebase/firestore'; // Đảm bảo đã import thư viện firestore
 
-const CardList = ({data}) => {
+const CardList = ({data, navigation}) => {
   return (
     <ScrollView style={styles.container}>
       {data.map(item => (
-        <Card
-          key={item.id}
-          name={item.name}
-          checkIn={item.check_in}
-          checkOut={item.check_out}
-          totalPrice={item.total_price}
-          status={item.status}
-        />
+        <TouchableOpacity
+          key={item.booking_id}
+          onPress={() => {
+            navigation.navigate('DetailConsumer', {item});
+          }}>
+          <Card
+            booking={item} // Truyền toàn bộ đối tượng booking cho Card
+          />
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
 };
 
-const Card = ({name, checkIn, checkOut, totalPrice, status}) => {
+const Card = ({booking}) => {
+  const {user_id, name, check_in, check_out, total_price, status, room_number} =
+    booking;
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userSnapshot = await firestore()
+          .collection('Users')
+          .doc(user_id)
+          .get();
+
+        if (userSnapshot.exists) {
+          setUserData(userSnapshot.data());
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [user_id]);
+
   return (
     <View style={[styles.cardContainer]}>
       <View
@@ -28,17 +59,25 @@ const Card = ({name, checkIn, checkOut, totalPrice, status}) => {
         ]}>
         <View style={styles.rowContainer}>
           <Text style={[styles.boldText, styles.rowItem]}>{`Name: `}</Text>
-          <Text style={[styles.cardText, styles.rowItem]}>{`${name}`}</Text>
+          <Text style={[styles.cardText, styles.rowItem]}>{`${
+            userData?.name || name
+          }`}</Text>
         </View>
 
         <View style={styles.rowContainer}>
           <Text style={[styles.boldText, styles.rowItem]}>{`Check-in: `}</Text>
-          <Text style={[styles.cardText, styles.rowItem]}>{`${checkIn}`}</Text>
+          <Text style={[styles.cardText, styles.rowItem]}>{`${check_in}`}</Text>
+        </View>
+        <View style={styles.rowContainer}>
+          <Text style={[styles.boldText, styles.rowItem]}>{`Room: `}</Text>
+          <Text
+            style={[styles.cardText, styles.rowItem]}>{`${room_number}`}</Text>
         </View>
 
         <View style={styles.rowContainer}>
           <Text style={[styles.boldText, styles.rowItem]}>{`Check-out: `}</Text>
-          <Text style={[styles.cardText, styles.rowItem]}>{`${checkOut}`}</Text>
+          <Text
+            style={[styles.cardText, styles.rowItem]}>{`${check_out}`}</Text>
         </View>
 
         <View style={styles.rowContainer}>
@@ -48,7 +87,7 @@ const Card = ({name, checkIn, checkOut, totalPrice, status}) => {
             style={[
               styles.totalPriceText,
               styles.rowItem,
-            ]}>{`${totalPrice}$`}</Text>
+            ]}>{`${total_price}$`}</Text>
         </View>
         <Text
           style={[
@@ -76,7 +115,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     width: '100%',
-    height: 180,
+    height: 230,
   },
   boldText: {
     fontSize: 16,

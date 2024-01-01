@@ -12,23 +12,42 @@ import {Picker} from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 import {FlatList, ScrollView} from 'react-native-gesture-handler';
 import database from '@react-native-firebase/database';
+import {set} from 'date-fns';
 const DetailHomeScreenAdmin = ({route, navigation}) => {
-  const homestay = route.params;
+  const {item, provinces} = route.params;
+  const homestay = item;
   const [rooms, setRooms] = useState([]);
   const [roomtype, setRoomTypes] = useState([]);
-  const [name, setName] = useState(homestay.name);
-  const [location, setLocation] = useState(homestay.location);
-  const [policy, setPolicy] = useState(homestay.policy);
-  const [price, setPrice] = useState(homestay.price);
-  const [province, setProvince] = useState(homestay.province);
-  const [slogan, setSlogan] = useState(homestay.slogan);
-  const [detail, setDetail] = useState(homestay.details);
+  const [name, setName] = useState(item.name);
+  const [location, setLocation] = useState(item.location);
+  const [province, setProvince] = useState(item.province);
+  const [policy, setPolicy] = useState(item.policy);
+  const [price, setPrice] = useState(item.price);
+  const [slogan, setSlogan] = useState(item.slogan);
+  const [detail, setDetail] = useState(item.details);
   const [extensions, setExtensions] = useState({
-    buffet: homestay.extension['Buffet'] == 1 ? true : false,
-    carPark: homestay.extension['Car_park'] == 1 ? true : false,
-    motorBike: homestay.extension['MotorBike'] == 1 ? true : false,
-    wifi: homestay.extension['Wifi'] == 1 ? true : false,
+    buffet: item.extension['Buffet'] == 1 ? true : false,
+    car_park: item.extension['Car_park'] == 1 ? true : false,
+    motorBike: item.extension['MotorBike'] == 1 ? true : false,
+    wifi: item.extension['Wifi'] == 1 ? true : false,
   });
+  const [selectedType, setSelectedTypes] = useState({
+    Travel: false,
+    Luxury: false,
+    Couple: false,
+    Trending: false,
+    'For sales': false,
+  });
+  const updateSelectedTypes = () => {
+    const updatedSelectedType = {...selectedType};
+    Object.keys(selectedType).forEach(type => {
+      updatedSelectedType[type] = item.type.includes(type);
+    });
+    setSelectedTypes(updatedSelectedType);
+  };
+  useEffect(() => {
+    updateSelectedTypes();
+  }, [item.type]);
 
   const fetchRooms = useCallback(async () => {
     const snapshot = await database().ref('rooms').once('value');
@@ -65,94 +84,52 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
       const roomTypesData = Object.values(data);
       // Lọc các kiểu phòng theo homestay_id
       const filteredRoomTypes = roomTypesData.filter(
-        roomType => roomType.homestay_id === homestay.homestay_id,
+        roomType => roomType.homestay_id === item.homestay_id,
       );
       let updatedRoomTypes = filteredRoomTypes;
       await setRoomTypes(updatedRoomTypes);
     }
-  }, [homestay.homestay_id]);
+  }, [item.homestay_id]);
+
   useEffect(() => {
     fetchRoomTypes();
   }, [fetchRoomTypes]);
-
   useEffect(() => {
     fetchRooms();
   }, [fetchRooms]);
-  const provinces = [
-    'Hà Nội',
-    'Hồ Chí Minh',
-    'Đà Nẵng',
-    'Hải Phòng',
-    'Cần Thơ',
-    'An Giang',
-    'Bà Rịa-Vũng Tàu',
-    'Bắc Giang',
-    'Bắc Kạn',
-    'Bạc Liêu',
-    'Bắc Ninh',
-    'Bến Tre',
-    'Bình Định',
-    'Bình Dương',
-    'Bình Phước',
-    'Bình Thuận',
-    'Cà Mau',
-    'Cao Bằng',
-    'Đắk Lắk',
-    'Đắk Nông',
-    'Điện Biên',
-    'Đồng Nai',
-    'Đồng Tháp',
-    'Gia Lai',
-    'Hà Giang',
-    'Hà Nam',
-    'Hà Tĩnh',
-    'Hải Dương',
-    'Hậu Giang',
-    'Hòa Bình',
-    'Hưng Yên',
-    'Khánh Hòa',
-    'Kiên Giang',
-    'Kon Tum',
-    'Lai Châu',
-    'Lâm Đồng',
-    'Lạng Sơn',
-    'Lào Cai',
-    'Long An',
-    'Nam Định',
-    'Nghệ An',
-    'Ninh Bình',
-    'Ninh Thuận',
-    'Phú Thọ',
-    'Quảng Bình',
-    'Quảng Nam',
-    'Quảng Ngãi',
-    'Quảng Ninh',
-    'Quảng Trị',
-    'Sóc Trăng',
-    'Sơn La',
-    'Tây Ninh',
-    'Thái Bình',
-    'Thái Nguyên',
-    'Thanh Hóa',
-    'Thừa Thiên-Huế',
-    'Tiền Giang',
-    'Trà Vinh',
-    'Tuyên Quang',
-    'Vĩnh Long',
-    'Vĩnh Phúc',
-    'Yên Bái',
-  ];
+
+  const convertObjectToArray = selectedType => {
+    const selectedArray = Object.entries(selectedType)
+      .filter(([key, value]) => value) // Filter only true values
+      .map(([key]) => key); // Get keys of true values
+
+    const hourlyOvernightArray = ['Hourly', 'Overnight'];
+
+    return [...hourlyOvernightArray, ...selectedArray];
+  };
+
   const handleSave = () => {
-    // Đoạn mã để xử lý khi người dùng lưu thông tin
-    console.log('Name:', name);
-    console.log('Location:', location);
-    console.log('Policy:', policy);
-    console.log('Price:', price);
-    console.log('Province:', province);
-    console.log('Slogan:', slogan);
-    console.log('Detail:', detail);
-    console.log('Extensions:', extensions);
-    // Thêm các logic xử lý lưu dữ liệu vào cơ sở dữ liệu nếu cần
+    let path = (item.homestay_id - 1).toString();
+    const typesArray = convertObjectToArray(selectedType);
+    const updatedExtensions = {
+      Buffet: extensions.buffet ? 1 : 0,
+      Car_park: extensions.car_park ? 1 : 0,
+      MotorBike: extensions.motorBike ? 1 : 0,
+      Wifi: extensions.wifi ? 1 : 0,
+    };
+    database()
+      .ref('homestays/' + path)
+      .update({
+        name: name,
+        location: location,
+        policy: policy,
+        price: price,
+        province: province,
+        slogan: slogan,
+        details: detail,
+        extension: updatedExtensions,
+        type: typesArray,
+      });
   };
   const listroomNav = async () => {
     navigation.navigate('RoomScreen_admin', {rooms, roomtype, homestay});
@@ -235,7 +212,18 @@ const DetailHomeScreenAdmin = ({route, navigation}) => {
             <Text style={styles.label}>{key}</Text>
           </View>
         ))}
-
+        <Text style={styles.label}>Homestay Types:</Text>
+        {Object.keys(selectedType).map(type => (
+          <View key={type} style={styles.checkboxContainer}>
+            <CheckBox
+              value={selectedType[type]}
+              onValueChange={value =>
+                setSelectedTypes({...selectedType, [type]: value})
+              }
+            />
+            <Text style={styles.label}>{type}</Text>
+          </View>
+        ))}
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>

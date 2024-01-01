@@ -25,7 +25,7 @@ const PayScreen = ({navigation, route}) => {
   const data = route.params;
   console.log(data);
 
-  // const selector = useSelector(state => state.timestamp);
+  const selector = useSelector(state => state.timestamp);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [homestay, setHomestay] = useState();
   const [name, setname] = useState('');
@@ -80,21 +80,21 @@ const PayScreen = ({navigation, route}) => {
   };
 
   const handleCheckCode = async () => {
-    // const snapshot = await database()
-    //   .ref('voucher')
-    //   .orderByChild('code')
-    //   .equalTo(inputValue)
-    //   .once('value');
-    // if (snapshot && snapshot.val()) {
-    //   const voucherData = snapshot.val();
-    //   const firstVoucher = Object.values(voucherData)[0];
-    //   setDiscount(firstVoucher.value);
-    //   setCheckedPrice(true);
-    //   alert('Voucher hợp lệ!');
-    // } else {
-    //   setCheckedPrice(false);
-    //   alert('Voucher không hợp lệ!');
-    // }
+    const snapshot = await database()
+      .ref('voucher')
+      .orderByChild('code')
+      .equalTo(inputValue)
+      .once('value');
+    if (snapshot && snapshot.val()) {
+      const voucherData = snapshot.val();
+      const firstVoucher = Object.values(voucherData)[0];
+      setDiscount(firstVoucher.value);
+      setCheckedPrice(true);
+      alert('Voucher hợp lệ!');
+    } else {
+      setCheckedPrice(false);
+      alert('Voucher không hợp lệ!');
+    }
   };
 
   const roundToInteger = number => {
@@ -263,7 +263,7 @@ const PayScreen = ({navigation, route}) => {
       ...data,
       booking_id: booking_id,
       total_price: totalPrice,
-      status: 'booked',
+      status: 'Waiting',
     };
 
     addBookingToRealtimeDatabase(newBooking);
@@ -321,7 +321,7 @@ const PayScreen = ({navigation, route}) => {
                           uri: 'https://firebasestorage.googleapis.com/v0/b/homestay-cacf0.appspot.com/o/Hourly.png?alt=media&token=3d8db9a1-2f3e-41ef-9645-24de97dbbe06',
                         }}>
                         <Text style={styles.durationText}>
-                          {/* {selector.hourly.duration} hour(s) */}
+                          {selector.hourly.duration} hour(s)
                         </Text>
                       </ImageBackground>
                     ) : data.time_type === 'Overnight' ? (
@@ -331,7 +331,7 @@ const PayScreen = ({navigation, route}) => {
                           uri: 'https://firebasestorage.googleapis.com/v0/b/homestay-cacf0.appspot.com/o/Overnight.png?alt=media&token=4afc5d56-be7d-4a77-a7f1-2b7f56ec832e',
                         }}>
                         <Text style={styles.durationText}>
-                          {/* {selector.overnight.duration} night(s) */}
+                          {selector.overnight.duration} night(s)
                         </Text>
                       </ImageBackground>
                     ) : (
@@ -341,7 +341,7 @@ const PayScreen = ({navigation, route}) => {
                           uri: 'https://firebasestorage.googleapis.com/v0/b/homestay-cacf0.appspot.com/o/Daily.png?alt=media&token=405265a0-6d56-493e-a901-9b613e22d823',
                         }}>
                         <Text style={styles.durationText}>
-                          {/* {selector.daily.duration} day(s) */}
+                          {selector.daily.duration} day(s)
                         </Text>
                       </ImageBackground>
                     )}

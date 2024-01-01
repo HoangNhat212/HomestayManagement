@@ -29,6 +29,7 @@ import AddVoucher_admin from '../components/Admin/AddVoucher_admin';
 import DetailVoucher_admin from '../components/Admin/DetailVoucher_admin';
 import AddRoom_admin from '../components/Admin/AddRoom_admin';
 import BottomTabsNavigator_HomeStayUser from '../components/AccountHomestay/BottomNavigation_homeuser';
+import Detailconsumer from '../components/AccountHomestay/Detailconsumer';
 
 const Stack = createNativeStackNavigator();
 const myTheme = {
@@ -96,6 +97,12 @@ function StackTabs() {
         component={DetailHomestay}
         options={{headerShown: false}}
       />
+      <Stack.Screen
+        name="DetailConsumer"
+        component={Detailconsumer}
+        options={{headerShown: false}}
+      />
+
       <Stack.Screen
         name="DetailHomeScreen_Admin"
         component={DetailHomeScreen_admin}

@@ -8,7 +8,7 @@ import firestore from '@react-native-firebase/firestore';
 const History = () => {
   const [bookingData, setBookingData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [status, setstatus] = useState('');
   const fetchBookingDataByUserId = async userId => {
     try {
       const querySnapshot = await firestore()
@@ -19,8 +19,8 @@ const History = () => {
       if (!querySnapshot.empty) {
         const bookings = querySnapshot.docs.map(async doc => {
           const booking = doc.data();
-          console.log(booking);
           const homestayInfo = await fetchHomestayInfo(booking.homestay_id);
+          await setstatus(booking.status);
           return {
             ...booking,
             name: homestayInfo.name,
@@ -130,7 +130,7 @@ const History = () => {
               </Text>
               <Text style={styles.cardPrice}>{item.total_price} $</Text>
               <View style={{marginLeft: 150}}>
-                <CompletedBox />
+                <CompletedBox status={status} />
               </View>
             </View>
           </View>
