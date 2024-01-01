@@ -6,7 +6,8 @@ import IconIoni from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import colors from '../../assets/consts/colors';
-
+import CryptoJS from 'react-native-crypto-js';
+import {KEY} from '@env';
 const SignUp = ({navigation}) => {
   const [formData, setFormData] = useState({
     regemail: '',
@@ -24,6 +25,7 @@ const SignUp = ({navigation}) => {
 
   const handleSignUp = async () => {
     const {regemail, fullname, phonenumber, password, checkpassword} = formData;
+    let ciphertext = null;
 
     // Email validation
     if (!regemail.endsWith('@gmail.com')) {
@@ -44,6 +46,8 @@ const SignUp = ({navigation}) => {
     if (password !== checkpassword) {
       Alert.alert('Password Mismatch', 'The passwords do not match.');
       return;
+    } else {
+      ciphertext = CryptoJS.AES.encrypt(password, KEY).toString();
     }
 
     try {
@@ -65,7 +69,7 @@ const SignUp = ({navigation}) => {
         name: fullname,
         email: regemail,
         phone: phonenumber,
-        password: checkpassword,
+        password: ciphertext,
         gender: '',
         permission: 1,
         date_of_birth: '',

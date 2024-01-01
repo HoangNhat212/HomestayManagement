@@ -19,6 +19,7 @@ import uuid from 'uuid-random';
 import storage from '@react-native-firebase/storage';
 import database from '@react-native-firebase/database';
 import {id} from 'date-fns/locale';
+import firestore from '@react-native-firebase/firestore';
 const AddScreen_admin = ({navigation}) => {
   const provinces = [
     'Hà Nội',
@@ -179,7 +180,7 @@ const AddScreen_admin = ({navigation}) => {
         type[index++] = key;
       }
     });
-    let idhomestay = (count + 1).toString();
+    let idhomestay = count + 1;
     const processedData = {
       ...newHomestay,
       type: type,
@@ -191,13 +192,19 @@ const AddScreen_admin = ({navigation}) => {
         longitude: parseFloat(coordinates.longitude),
       },
     };
-
-    database()
+    const userDocument = database()
       .ref('homestays/' + count)
       .set(processedData)
       .then(() => {
         console.log('Data set.');
         Alert.alert('Success', 'Add homestay successfully');
+        firestore()
+          .collection('AccountHomestay')
+          .add({
+            email: name + '@stelio',
+            password: '123',
+            homestay_id: idhomestay,
+          });
         navigation.goBack();
       });
 
