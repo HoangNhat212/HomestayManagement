@@ -112,7 +112,9 @@ function Login({navigation}) {
           if (!querySnapshot.empty) {
             const user = querySnapshot.docs[0].data();
             let homeid = user.homestay_id;
-            let deencrypt = CryptoJS.AES.decrypt(user.password, KEY).toString();
+            let deencrypt = CryptoJS.AES.decrypt(user.password, KEY).toString(
+              CryptoJS.enc.Utf8,
+            );
             if (deencrypt === password) {
               navigation.navigate('BottomTabsNavigator_HomeStayAccount', {
                 homeid,
@@ -135,7 +137,11 @@ function Login({navigation}) {
         .then(querySnapshot => {
           if (!querySnapshot.empty) {
             const user = querySnapshot.docs[0].data();
-            if (user.password === password) {
+            let deencrypt = CryptoJS.AES.decrypt(user.password, KEY).toString(
+              CryptoJS.enc.Utf8,
+            );
+            console.log(deencrypt, password);
+            if (deencrypt === password) {
               login();
             } else {
               alert('Wrong password');
