@@ -11,6 +11,7 @@ import database from '@react-native-firebase/database';
 
 const Homescreen_admin = ({navigation}) => {
   const [data, setData] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   useEffect(() => {
     database()
       .ref('/homestays')
@@ -18,11 +19,31 @@ const Homescreen_admin = ({navigation}) => {
         setData(snapshot.val());
       });
   }, []);
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const snapshot = await database().ref('provinces').once('value');
+        const provincesData = snapshot.val() || {};
 
+        // Convert the provincesData object to an array
+        const provincesArray = Object.values(provincesData);
+
+        // Chọn thuộc tính 'name' từ mỗi đối tượng
+        const provinceNames = provincesArray.map(province => province.name);
+        setProvinces(provinceNames);
+        console.log(provinceNames);
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+      }
+    };
+    fetchProvinces();
+  }, []);
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate('DetailHomeScreen_Admin', item)}>
+        onPress={() =>
+          navigation.navigate('DetailHomeScreen_Admin', {item, provinces})
+        }>
         <View style={styles.itemContainer}>
           <Image source={{uri: item.image}} style={styles.itemImage} />
           <Text style={styles.itemText}>{item.name}</Text>

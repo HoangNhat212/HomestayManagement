@@ -34,6 +34,7 @@ const Roomscreen_admin = ({route, navigation}) => {
         );
       const updatedRooms = filterclassifiedRooms;
       setRooms(updatedRooms);
+      console.log('hiii', updatedRooms);
     }
   }, [roomtype]);
 
@@ -50,11 +51,17 @@ const Roomscreen_admin = ({route, navigation}) => {
     }
   }, [homestay.homestay_id]);
 
+  useEffect(() => {
+    fetchRooms();
+  }, [roomtype]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchRoomTypes().then(() => {
-        fetchRooms();
-      });
+      const fetchData = async () => {
+        await fetchRoomTypes();
+      };
+
+      fetchData();
     }, []),
   );
   // Hàm để lấy room_type từ roomtype_id

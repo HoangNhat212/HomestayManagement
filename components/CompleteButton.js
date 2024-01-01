@@ -1,11 +1,23 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 
-const CompletedBox = () => {
+const CompletedBox = ({status}) => {
+  console.log('status', status);
+  const boxColor =
+    status == 'Waiting' ? 'orange' : status == 'Paid' ? 'green' : '#000';
+
   return (
-    <View style={styles.container}>
-      <View style={styles.rectangle}>
-        <Text style={styles.text}>Hoàn thành</Text>
+    <View style={[styles.container, {alignItems: 'center'}]}>
+      <View
+        style={{
+          width: 100,
+          height: 20,
+          borderRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: boxColor,
+        }}>
+        <Text style={[styles.text]}>{status}</Text>
       </View>
     </View>
   );
@@ -14,19 +26,10 @@ const CompletedBox = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
   },
-  rectangle: {
-    width: 100,
-    height: 20,
-    backgroundColor: 'green',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   text: {
-    color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
   },
