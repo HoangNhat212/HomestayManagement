@@ -13,11 +13,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
 import {useFocusEffect} from '@react-navigation/native';
 
+import AysncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
 function Account({navigation, route}) {
   const [name, setname] = useState('');
   const [phone, setphone] = useState('');
   const [accmail, setaccmail] = useState('');
   const [selectLanguage, setselectLanguage] = useState([]);
+
+  const decryptMessage = async message => {
+    var string_private_key = await AsyncStorage.getItem('private_key');
+    const private_key = JSON.parse(string_private_key);
+    try {
+      const response = await axios.post('http://192.168.110.67:5000/decrypt', {
+        encrypted_message: message,
+        da: private_key.da,
+        db: private_key.db,
+        p: private_key.p,
+        q: private_key.q,
+      });
+      return response.data.decrypted_message;
+    } catch (error) {
+      console.error('Error decrypting message', error);
+    }
+  };
 
   const NotificationSettingHandal = async () => {
     navigation.navigate('NotificationSetting');
@@ -52,7 +72,8 @@ function Account({navigation, route}) {
               .get();
             if (!querySnapshot.empty) {
               const userData = querySnapshot.docs[0].data();
-              setname(userData.name);
+              let decrypt_name = await decryptMessage(userData.name);
+              setname(decrypt_name);
               setphone(userData.phone);
               setaccmail(mail);
             }

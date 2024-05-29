@@ -16,6 +16,8 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {de} from 'date-fns/locale';
 
 function Information({route}) {
   const {email} = route.params;
@@ -33,6 +35,54 @@ function Information({route}) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isSecure, setIsSecure] = useState(true);
+
+  const [keys, setKeys] = useState({public_key: {}, private_key: {}});
+
+  const generateKeys = async () => {
+    try {
+      const response = await axios.get(
+        'http://192.168.110.67:5000/generate_keys',
+      );
+      setKeys(response.data);
+      return response.data;
+    } catch (error) {
+      console.info(error);
+      console.error('Error generating keys', error);
+    }
+  };
+
+  const encryptMessage = async ({message, keysnew}) => {
+    try {
+      const response = await axios.post('http://192.168.110.67:5000/encrypt', {
+        message,
+        e: keysnew.e,
+        n: keysnew.n,
+      });
+      return await response.data.encrypted_message;
+    } catch (error) {
+      console.error('Error encrypting message', error);
+    }
+  };
+
+  const decryptMessage = async message => {
+    var string_private_key = await AsyncStorage.getItem('private_key');
+    console.log('string_private_key', string_private_key);
+    const private_key = JSON.parse(string_private_key);
+    console.log('private_key', private_key);
+    try {
+      const response = await axios.post('http://192.168.110.67:5000/decrypt', {
+        encrypted_message: message,
+        da: private_key.da,
+        db: private_key.db,
+        p: private_key.p,
+        q: private_key.q,
+      });
+      return response.data.decrypted_message;
+    } catch (error) {
+      console.error('Error decrypting message', error);
+    }
+  };
+
   const setData = option => {
     setchooseData(option);
   };
@@ -62,36 +112,53 @@ function Information({route}) {
   }, []);
 
   const handleUpdateData = async () => {
-    const updatedGender = chooseData;
-    const mail = await AsyncStorage.getItem('EmailAccount');
-    const checkservice = await AsyncStorage.getItem('isLoggedService');
+    try {
+      const updatedGender = chooseData;
+      const mail = await AsyncStorage.getItem('EmailAccount');
+      const checkservice = await AsyncStorage.getItem('isLoggedService');
 
-    firestore()
-      .collection('Users')
-      .where('email', '==', mail)
-      .get()
-      .then(querySnapshot => {
-        if (querySnapshot.docs.length > 0) {
-          const documentRef = querySnapshot.docs[0].ref;
-          documentRef
-            .update({
-              gender: updatedGender || gender,
-              name: name,
-              phone: phone,
-              date_of_birth: selectedDate || dob,
-              password: password,
-            })
-            .then(() => {
-              console.log('Cập nhật thành công');
-            })
-            .catch(error => {
-              console.log('Lỗi khi cập nhật:', error);
-            });
-        }
-      })
-      .catch(error => {
-        console.log('Lỗi khi truy vấn:', error);
+      // Generate keys
+      var keys_new = await generateKeys();
+
+      // Store private key
+      await AsyncStorage.setItem(
+        'private_key',
+        JSON.stringify(keys_new.private_key),
+      );
+
+      const a = await AsyncStorage.getItem('private_key');
+
+      // Encrypt name
+      const encrypt_name = await encryptMessage({
+        message: name,
+        keysnew: keys_new.public_key,
       });
+
+      // Fetch user data
+      const querySnapshot = await firestore()
+        .collection('Users')
+        .where('email', '==', mail)
+        .get();
+
+      if (querySnapshot.docs.length > 0) {
+        const documentRef = querySnapshot.docs[0].ref;
+
+        // Update user data
+        await documentRef.update({
+          gender: updatedGender || gender,
+          name: encrypt_name,
+          phone: phone,
+          date_of_birth: selectedDate || dob,
+          password: password,
+        });
+
+        console.log('Update successful');
+      } else {
+        console.log('User not found');
+      }
+    } catch (error) {
+      console.error('Error updating data:', error);
+    }
   };
 
   const checkInfo = async () => {
@@ -103,14 +170,17 @@ function Information({route}) {
       setname(name);
       setaccmail(mail);
     } else {
-      await firestore()
+      firestore()
         .collection('Users')
         .where('email', '==', mail)
         .get()
-        .then(querySnapshot => {
+        .then(async querySnapshot => {
           if (querySnapshot.docs.length > 0) {
             if (querySnapshot.docs[0]._data.email === mail) {
-              setname(querySnapshot.docs[0]._data.name);
+              let decrpt_name = await decryptMessage(
+                querySnapshot.docs[0]._data.name,
+              );
+              setname(decrpt_name);
               setphone(querySnapshot.docs[0]._data.phone);
               setgender(querySnapshot.docs[0]._data.gender);
               setdob(querySnapshot.docs[0]._data.date_of_birth);
