@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, View, TextInput, Alert} from 'react-native';
 import {Button} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -8,6 +8,10 @@ import auth from '@react-native-firebase/auth';
 import colors from '../../assets/consts/colors';
 import CryptoJS from 'react-native-crypto-js';
 import {KEY} from '@env';
+
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const SignUp = ({navigation}) => {
   const [formData, setFormData] = useState({
     regemail: '',
@@ -18,7 +22,36 @@ const SignUp = ({navigation}) => {
     showPassword: false,
     showCheckPassword: false,
   });
+  const [keys, setKeys] = useState({public_key: {}, private_key: {}});
+  const generateKeys = async () => {
+    try {
+      const response = await axios.get(
+        'http://192.168.110.67:5000/generate_keys',
+      );
+      await setKeys(response.data);
+    } catch (error) {
+      console.info(error);
+      console.error('Error generating keys', error);
+    }
+  };
 
+  const encryptMessage = async message => {
+    const {public_key} = keys;
+    try {
+      const response = await axios.post('http://192.168.110.67:5000/encrypt', {
+        message,
+        e: public_key.e,
+        n: public_key.n,
+      });
+      return response.data.encrypted_message;
+    } catch (error) {
+      console.error('Error encrypting message', error);
+    }
+  };
+
+  useEffect(() => {
+    generateKeys();
+  }, []);
   const handleInputChange = (name, value) => {
     setFormData(prevState => ({...prevState, [name]: value}));
   };
@@ -65,8 +98,16 @@ const SignUp = ({navigation}) => {
         );
       }
 
+      let encrypt_name = await encryptMessage(fullname);
+      await AsyncStorage.setItem(
+        'private_key',
+        JSON.stringify(keys.private_key),
+      );
+      var a = await AsyncStorage.getItem('private_key');
+      console.log('private_key hien tai', a);
+
       await firestore().collection('Users').doc(uid).set({
-        name: fullname,
+        name: encrypt_name,
         email: regemail,
         phone: phonenumber,
         password: ciphertext,
@@ -74,6 +115,7 @@ const SignUp = ({navigation}) => {
         permission: 1,
         date_of_birth: '',
       });
+
       backloginscreen();
     } catch (error) {
       console.log('Sign up error:', error);
